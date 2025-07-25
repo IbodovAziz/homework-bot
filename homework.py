@@ -52,7 +52,6 @@ def send_message(bot: TeleBot, message: str):
     """Отправка сообщения через бота."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-        # print('Успешно отправлено сообщение в Telegram')
         logger.debug(f'Успешно отправлено сообщение в Telegram: "{message}"')
     except SendMessageError as er:
         msg = f'сбой при отправке сообщения в Telegram {er}'
@@ -93,7 +92,6 @@ def check_response(response):
 
 def parse_status(homework):
     """Обработка словаря с данными."""
-
     homework_name = homework.get('homework_name')
     if not homework_name:
         msg = f'Ключ {homework_name} отсутствует.'
@@ -141,7 +139,6 @@ def main():
                     else:
                         timestamp = response.get('current_date', timestamp)
                         logger.debug('Отсутсвует обновление статуса.')
-                        send_message(bot, 'Статус не изменился, проверяем дальше')
         except Exception as error:
             logger.error(error)
         finally:
