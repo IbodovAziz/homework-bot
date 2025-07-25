@@ -42,9 +42,10 @@ def check_tokens():
     if all(
             [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     ):
+        logger.info('Проверка токенов прошла успешна!')
         return True
-    logger.critical('Ошибка в переменных окружения')
-    raise TokenError('Невалидный токен')
+    logger.critical('Ошибка в переменных окружения!')
+    raise TokenError('Невалидный токен!')
 
 
 def send_message(bot: TeleBot, message: str):
@@ -92,20 +93,21 @@ def check_response(response):
 
 def parse_status(homework):
     """Обработка словаря с данными."""
-    homework_name = homework.get('homework_name', None)
-    if homework_name is None:
+
+    homework_name = homework.get('homework_name')
+    if not homework_name:
         msg = f'Ключ {homework_name} отсутствует.'
         logger.error(msg)
         raise NameHomeworkError(msg)
 
-    status = homework.get('status', None)
-    if status is None:
+    status = homework.get('status')
+    if not status:
         msg = f'Ошибка в статусе: {status}.'
         logger.error(msg)
         raise EmptyStatus(msg)
 
-    verdict = HOMEWORK_VERDICTS.get(status, None)
-    if verdict is None:
+    verdict = HOMEWORK_VERDICTS.get(status)
+    if not verdict:
         msg = f'Получен недокументированный статус домашней работы: {status}'
         logger.error(msg)
         raise UndocumentedStatus(msg)
@@ -121,29 +123,27 @@ def main():
 
     timestamp = int(time.time())
     cur_status = None
-    homework = None
 
     while True:
         try:
-            response = check_response(get_api_answer(timestamp))
+            response = get_api_answer(timestamp)
+            data = check_response(response)
 
-            if response:
-                homework = response.get('homeworks')
-                timestamp = response['current_date']
-
-            if homework:
-                msg = parse_status(homework[0])
-                send_message(bot, msg)
-                cur_status = homework[0]['status']
+            if not data.get('homeworks'):
+                logger.debug('Отсутствуют обновления.')
             else:
-                logger.debug('отсутствие в ответе новых статусов')
-
-            if cur_status == 'approved':
-                timestamp = int(time.time())
-
-        except requests.exceptions.RequestException as error:
-            message = f'Сбой в работе программы: {error}'
-            logger.error(message)
+                homework = data['homeworks'][0]
+                if homework:
+                    status = homework['status']
+                    if status != cur_status:
+                        send_message(bot, parse_status(homework))
+                        cur_status = status
+                    else:
+                        timestamp = response.get('current_date', timestamp)
+                        logger.debug('Отсутсвует обновление статуса.')
+                        send_message(bot, 'Статус не изменился, проверяем дальше')
+        except Exception as error:
+            logger.error(error)
         finally:
             time.sleep(RETRY_PERIOD)
 
