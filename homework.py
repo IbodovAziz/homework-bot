@@ -2,6 +2,7 @@ import os
 import time
 import logging
 import sys
+from http import HTTPStatus
 
 import requests
 from dotenv import load_dotenv
@@ -25,7 +26,7 @@ PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = 861489716
 
-RETRY_PERIOD = 600
+RETRY_PERIOD = 10 * 60
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -44,8 +45,9 @@ def check_tokens():
     ):
         logger.info('Проверка токенов прошла успешна!')
         return True
-    logger.critical('Ошибка в переменных окружения!')
-    raise TokenError('Невалидный токен!')
+    return False
+    # logger.critical('Ошибка в переменных окружения!')
+    # raise TokenError('Невалидный токен!')
 
 
 def send_message(bot: TeleBot, message: str):
@@ -64,7 +66,7 @@ def get_api_answer(timestamp: int):
     from_date = {'from_date': timestamp}
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=from_date)
-        if response.status_code != 200:
+        if response.status_code != HTTPStatus.OK:
             raise UnavailabilityError('API unavailability')
     except requests.exceptions.RequestException as er:
         msg = f'сбои при запросе к эндпоинту : {er}'
@@ -115,7 +117,9 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-    check_tokens()
+    if not check_tokens():
+        logger.critical('Ошибка в переменных окружения!')
+        raise TokenError('Невалидный токен!')
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
 

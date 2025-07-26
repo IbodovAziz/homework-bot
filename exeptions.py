@@ -1,38 +1,30 @@
 class TokenError(Exception):
-    pass
+    """Отсутствие или ошибка токена."""
 
 
 class APIError(Exception):
-    pass
+    """API вернул ошибку."""
 
 
 class ResponseError(Exception):
-    pass
+    """В ответе API отсутсвует необходимый ключ."""
 
 
 class SendMessageError(Exception):
-    pass
+    """Ошибка отправки сообщения."""
 
 
 class UnavailabilityError(Exception):
-    pass
+    """API unavailability, статус != 200"""
 
 
 class NameHomeworkError(Exception):
-    pass
+    """Ключ NameHomework отсутсвует."""
 
 
 class EmptyStatus(Exception):
-    pass
+    """Значение ключа статуса пустой."""
 
 
 class UndocumentedStatus(Exception):
-    pass
-
-
-class ResponseTypeError(Exception):
-    pass
-
-
-class ResponseKeyError(Exception):
-    pass
+    """Недокументированный статус."""
