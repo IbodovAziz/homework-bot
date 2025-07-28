@@ -43,11 +43,8 @@ def check_tokens():
     if all(
             [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     ):
-        logger.info('Проверка токенов прошла успешна!')
         return True
     return False
-    # logger.critical('Ошибка в переменных окружения!')
-    # raise TokenError('Невалидный токен!')
 
 
 def send_message(bot: TeleBot, message: str):
@@ -120,6 +117,8 @@ def main():
     if not check_tokens():
         logger.critical('Ошибка в переменных окружения!')
         raise TokenError('Невалидный токен!')
+    else:
+        logger.info('Проверка токенов прошла успешна!')
 
     bot = TeleBot(token=TELEGRAM_TOKEN)
 
